@@ -1,38 +1,55 @@
+import java.util.Random;
+
 public class Deck {
     private Card[] DeckOfCards;
 
     public Deck() {
         this.DeckOfCards = intializeCards(new Card[54]);
 
+
+    }
+
+    public Card[] intializeCards(Card[] cards){
+        String[] faces = {"King", "Queen", "Jack"};
+        String[] suits = {"heart", "club","spades","diamonds"};
+        int j = 0;
+        for(String suit : suits) {
+            for(int i = 1; i <=10; i++, j++){
+                cards[j] = new Card(Integer.toString(i), suit, false, false);
+            }
+            for (String face: faces) {
+                cards[j] = new Card(face,suit,false,false);
+                j++;
+            }
+
+        }
+        cards[52] = new Card("Joker", "Joker", false, false);
+        cards[53] = new Card("Joker", "Joker", false, false);
+        return cards;
     }
 
 
+    public Card[] shuffleCards(Card[] cards){
+        //im going for a n * n swap
+        Random rand = new Random();
+        for (int i = 0; i < cards.length; i++) {
+            for (int j = 0; j < cards.length; j++) {
+                int firstIndex = rand.nextInt(cards.length);
+                int secondIndex = rand.nextInt(cards.length);
+                while(secondIndex == firstIndex){
+                    secondIndex = rand.nextInt(cards.length);
+                }
 
-    public Card[] intializeCards(Card[] cards){
-        for (int i = 0; i < 13; i++) {
-            if(i < 10) {
-                cards[i] = new Card(Integer.toString(i+1),"heart",false,false);
-                cards[i+13] = new Card(Integer.toString(i+1),"clubs",false,false);
-                cards[i+26] = new Card(Integer.toString(i+1),"spades",false,false);
-                cards[i+39] = new Card(Integer.toString(i+1),"diamonds",false,false);
-            }else{
-                cards[10] = new Card("King", "heart", false, false);
-                cards[11] = new Card("Queen", "heart", false, false);
-                cards[12] = new Card("Jack", "heart", false, false);
-                cards[20] = new Card("King", "clubs", false, false);
-                cards[21] = new Card("Queen", "clubs", false, false);
-                cards[22] = new Card("Jack", "clubs", false, false);
-                cards[30] = new Card("King", "spades", false, false);
-                cards[31] = new Card("Queen", "spades", false, false);
-                cards[32] = new Card("Jack", "spades", false, false);
-                cards[40] = new Card("King", "diamonds", false, false);
-                cards[41] = new Card("Queen", "diamonds", false, false);
-                cards[42] = new Card("Jack", "diamonds", false, false);
+                //swap now
+                Card temp = cards[firstIndex];
+                cards[firstIndex] = cards[secondIndex];
+                cards[secondIndex] = temp;
             }
         }
         return cards;
     }
 
+    //really understand how the main method works and that Deck object already has the array of cards
     public static void main(String[] args){
         Deck deckOfCard = new Deck();
         Card[] cardsTo = deckOfCard.DeckOfCards;
@@ -40,6 +57,17 @@ public class Deck {
         for (int i = 0; i < cardsTo.length; i++) {
             cardsTo[i].printCard(cardsTo[i]);
         }
+
+        Card[] shuffledCards = new Card[54];
+
+        shuffledCards = deckOfCard.shuffleCards(cardsTo);
+
+        for (int i = 0; i < shuffledCards.length; i++) {
+            shuffledCards[i].printCard(shuffledCards[i]);
+        }
+
+
+
     }
 
 }
