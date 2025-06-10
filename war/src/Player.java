@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Stack;
 
@@ -17,8 +18,20 @@ public class Player {
         this.handCards = new Stack<>();
     }
 
-    public void populateCard(Stack<Card> setOfCards, Card cardToAdd){
-        setOfCards.push(cardToAdd);
+    public void populateHandCard(Card cardToAdd){
+        this.handCards.push(cardToAdd);
+    }
+
+    public void populateCollectedCard(Card cardToAdd){
+        this.collectedCards.push(cardToAdd);
+    }
+
+    public Stack<Card> getCollectedCards() {
+        return this.collectedCards;
+    }
+
+    public Stack<Card> getHandCards() {
+        return this.handCards;
     }
 
     public void shuffleCollectedCard(){
@@ -30,19 +43,73 @@ public class Player {
 
         Random random = new Random();
 
-        //loop through, grab a random index and push it to the new stack, then delete the index from the list
+        HashMap<Card,Boolean> cardUsageMap = new HashMap<>();
 
 
-        //come back to this because the size of the stack changes when you remove from it.
-        for (int i = 0; i < listOfStack.size(); i++) {
-            int removedInd = random.nextInt(listOfStack.size());
-            Card cardToBeRemoved = listOfStack.get(removedInd);
-            newCollectedCards.push(cardToBeRemoved);
-            listOfStack.remove(removedInd);
+        for (Card card:
+             listOfStack) {
+            cardUsageMap.put(card,false);
         }
+
+
+        int count = listOfStack.size();
+
+        while(count>0){
+            int removedInd = random.nextInt(listOfStack.size());
+            if(cardUsageMap.get(listOfStack.get(removedInd)) == false){
+                Card cardToBeRemoved = listOfStack.get(removedInd);
+                newCollectedCards.push(cardToBeRemoved);
+                cardUsageMap.put(listOfStack.get(removedInd), true);
+                count--;
+            }
+        }
+
+        this.collectedCards = newCollectedCards;
 
     }
 
+
+    //place card into play pile. returns the popped card from the hand.
+    public Card placeCardIntoPlayPile(){
+        if(!this.handCards.isEmpty()){
+            Card removedAndPlacedCard = this.handCards.pop();
+            return removedAndPlacedCard;
+        }
+        return null;
+    }
+
+
+
+    public static void main(String[] args){
+        Player player = new Player();
+        Deck deck = new Deck();
+        Card[] playingCards = deck.getDeckOfCards();
+        deck.shuffleCards(playingCards);
+
+        for (int i = 0; i < 10; i++) {
+            player.populateHandCard(playingCards[i]);
+        }
+
+        System.out.println("--- Collected cards below ---");
+
+        for (int i = 10; i < 20; i++) {
+            player.populateCollectedCard(playingCards[i]);
+        }
+        for (Card card:
+             player.getCollectedCards()) {
+            card.printCard(card);
+        }
+
+        System.out.println("--- Shuffled Collected cards ---");
+
+        player.shuffleCollectedCard();
+
+        for (Card card:
+             player.getCollectedCards()) {
+            card.printCard(card);
+        }
+
+    }
 
 
 

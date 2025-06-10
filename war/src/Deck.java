@@ -9,6 +9,10 @@ public class Deck {
 
     }
 
+    public Card[] getDeckOfCards() {
+        return this.DeckOfCards;
+    }
+
     public Card[] intializeCards(Card[] cards){
         String[] faces = {"King", "Queen", "Jack"};
         String[] suits = {"heart", "club","spades","diamonds"};
