@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -53,17 +54,45 @@ public class GameLoop {
         }
     }
 
-    // DOUBLE CHECk THIS FOR EDGE CASES, ESPECIALLY ADDING MORE HAND CARDS
+
     private static Player warLogic(Player playerOne, Player playerTwo){
 
         while(true){
             for (int i = 0; i < 4; i++) {
-                playPile.push(playerOne.placeCardIntoPlayPile());
-                playPile.push(playerTwo.placeCardIntoPlayPile());
+                if (playPile.push(playerOne.placeCardIntoPlayPile()) == null){
+                    populateHandCardsFromCollectedCards(playerOne);
+                } else{
+                    continue;
+                }
+
+                if(playPile.push(playerTwo.placeCardIntoPlayPile()) == null){
+                    populateHandCardsFromCollectedCards(playerTwo);
+                } else {
+                    continue;
+                }
+
+
 
             }
             Card playerOneRevaledCard = playerOne.placeCardIntoPlayPile();
             Card playerTwoRevaledCard = playerTwo.placeCardIntoPlayPile();
+            if(playerOneRevaledCard == null){
+                if(!playerOne.getCollectedCards().isEmpty()){
+                    playerOne.populateHandCard(playerOne.getCollectedCards().pop());
+                    playerOneRevaledCard = playerOne.getHandCards().pop();
+                } else if(!playerTwo.getCollectedCards().isEmpty()) {
+                    return playerTwo;
+                }
+
+            }
+            if(playerTwoRevaledCard == null){
+                if(!playerTwo.getCollectedCards().isEmpty()){
+                    playerTwo.populateHandCard(playerTwo.getCollectedCards().pop());
+                    playerTwoRevaledCard = playerTwo.getHandCards().pop();
+                } else if (!playerOne.getCollectedCards().isEmpty()) {
+                    return playerOne;
+                }
+            }
             playPile.push(playerOneRevaledCard);
             playPile.push(playerTwoRevaledCard);
 
@@ -72,6 +101,8 @@ public class GameLoop {
             }  else if (whoWonRound(playerOne,playerTwo,playerOneRevaledCard, playerTwoRevaledCard) == playerTwo) {
                 return playerTwo;
             }
+
+            System.out.println("war logic");
         }
 
 
@@ -80,10 +111,7 @@ public class GameLoop {
     // DOUBLE CHECK THIS FOR EDGE CASES
     private static Player whoWonRound(Player playerOne, Player playerTwo, Card playerOneCard, Card playerTwoCard){
 
-        if(playerTwoCard == null || playerOneCard == null){
-            System.out.println("player has no more in hand cards. implement the out of hand card logic");
 
-        }
         if(isInteger(playerOneCard.getCardValue())&&isInteger(playerTwoCard.getCardValue())){
             int oneNum = Integer.parseInt(playerOneCard.getCardValue());
             int twoNum = Integer.parseInt(playerTwoCard.getCardValue());
@@ -98,13 +126,13 @@ public class GameLoop {
             } else{
                 return warLogic(playerOne, playerTwo);
             }
-        } else if (isInteger(playerOneCard.getCardValue()) && isInteger(playerTwoCard.getCardValue()) == false) {
+        } else if (isInteger(playerOneCard.getCardValue()) && !isInteger(playerTwoCard.getCardValue())) {
             if(Integer.parseInt(playerOneCard.getCardValue()) == 1){
                 return playerOne;
             } else {
                 return playerTwo;
             }
-        } else if(isInteger(playerOneCard.getCardValue()) == false && isInteger(playerTwoCard.getCardValue())){
+        } else if(!isInteger(playerOneCard.getCardValue()) && isInteger(playerTwoCard.getCardValue())){
             if(Integer.parseInt(playerTwoCard.getCardValue())==1){
                 return playerTwo;
             } else{
@@ -130,21 +158,27 @@ public class GameLoop {
         }
     }
 
-    // MUST FINISH THIS
-    private static void populateHandCardsFromCollectedCards(Player player){
-        for (int i = 0; i < 4; i++) {
-            if(player.getCollectedCards().size() >= 4){
+
+    private static boolean populateHandCardsFromCollectedCards(Player player){
+        boolean success = true;
+        if(player.getCollectedCards().size() >= 4){
+            for (int i = 0; i < 4; i++) {
                 player.populateHandCard(player.getCollectedCards().pop());
-            } else {
-                // game over logic
+
             }
+        } else{
+            success = false;
         }
+        return success;
+
     }
-    
-    
+
+
+
     // MUST FINISH THIS
     public void playGame(){
         boolean gameDone = false;
+        boolean signalFromPopulate = true;
         GameLoop game = new GameLoop();
         Card[] gameCards = game.intializeAndShuffleDeck();
 
@@ -153,33 +187,24 @@ public class GameLoop {
 
         game.doDeal(gameCards,player_One,player_Two);
 
-        while(gameDone == false){
-            if(player_One.getHandCards().size() == 0){
-                if(player_One.getCollectedCards().size() > 0){
-                    player_One.shuffleCollectedCard();
-                    populateHandCardsFromCollectedCards(player_One);
+        while(!gameDone){
 
-                }
-            }
-            if(player_Two.getHandCards().size() == 0){
-                if(player_Two.getCollectedCards().size() > 0){
-                    player_Two.shuffleCollectedCard();
-                    populateHandCardsFromCollectedCards(player_Two);
-                }
-            }
 
 
             Card playerOneCard = player_One.placeCardIntoPlayPile();
 
             //a check for null and adding more cards if necssary
+
             playPile.push(playerOneCard);
 
             Card playerTwoCard = player_Two.placeCardIntoPlayPile();
 
             //a check for null and adding more cards if necessary
+
             playPile.push(playerTwoCard);
 
             Player winner = whoWonRound(player_One,player_Two, playerOneCard, playerTwoCard);
+
 
             if(winner!=null){
                 redeemCards(winner);
@@ -187,14 +212,49 @@ public class GameLoop {
 
             //if either player runs out of hand cards we populate their hand. by four
 
+            if(player_One.getHandCards().size() == 0){
+                if(player_One.getCollectedCards().size() > 0){
+                    player_One.shuffleCollectedCard();
+                    signalFromPopulate = populateHandCardsFromCollectedCards(player_One);
+                    if(!signalFromPopulate){
+                        gameDone = true;
+                        System.out.println("Player two won with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
+                        System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
+                    }
+
+                } else{
+                    gameDone = true;
+                    System.out.println("Player two won with " + player_Two.getCollectedCards().size()+ player_Two.getHandCards().size()+ " cards");
+                    System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
+                }
+            }
+            if(player_Two.getHandCards().size() == 0){
+                if(player_Two.getCollectedCards().size() > 0){
+                    player_Two.shuffleCollectedCard();
+                    signalFromPopulate = populateHandCardsFromCollectedCards(player_Two);
+                    if(!signalFromPopulate){
+                        gameDone = true;
+                        System.out.println("Player two won with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
+                        System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
+                    }
+                } else{
+                    gameDone = true;
+                    System.out.println("Player one won with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
+                    System.out.println("Player two lost with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
+                }
+
+            }
+
+            System.out.println("game loop in game method");
 
         }
 
     }
 
     public static void main(String[] args){
+        GameLoop newGame = new GameLoop();
 
-
+        newGame.playGame();
 
     }
 
