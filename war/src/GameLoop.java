@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -32,7 +31,7 @@ public class GameLoop {
     }
 
     public void doDeal(Card[] cards, Player playerOne, Player playerTwo){
-        boolean isDeckDone = false;
+
         int deckCount = 0;
 
         while(deckCount<54){
@@ -57,97 +56,87 @@ public class GameLoop {
 
     private static Player warLogic(Player playerOne, Player playerTwo){
 
-        while(true){
-            for (int i = 0; i < 4; i++) {
-                if (playPile.push(playerOne.placeCardIntoPlayPile()) == null){
-                    populateHandCardsFromCollectedCards(playerOne);
-                } else{
-                    continue;
-                }
+       
+        Card playerOnePlayingCard;
+        Card playerTwoPlayingCard;
 
-                if(playPile.push(playerTwo.placeCardIntoPlayPile()) == null){
-                    populateHandCardsFromCollectedCards(playerTwo);
-                } else {
-                    continue;
-                }
-
-
-
+        if(playerOne.getHandCards().size()>=4){
+            for(int i = 0; i < 4; i++){
+                playPile.push(playerOne.getHandCards().pop());
             }
-            Card playerOneRevaledCard = playerOne.placeCardIntoPlayPile();
-            Card playerTwoRevaledCard = playerTwo.placeCardIntoPlayPile();
-            if(playerOneRevaledCard == null){
-                if(!playerOne.getCollectedCards().isEmpty()){
-                    playerOne.populateHandCard(playerOne.getCollectedCards().pop());
-                    playerOneRevaledCard = playerOne.getHandCards().pop();
-                } else if(!playerTwo.getCollectedCards().isEmpty()) {
-                    return playerTwo;
-                }
-
+        } else {
+            if(!populateHandCardsFromCollectedCards(playerOne)){
+                //handle playerTwo winning cards in the game loop
+                return playerTwo;
             }
-            if(playerTwoRevaledCard == null){
-                if(!playerTwo.getCollectedCards().isEmpty()){
-                    playerTwo.populateHandCard(playerTwo.getCollectedCards().pop());
-                    playerTwoRevaledCard = playerTwo.getHandCards().pop();
-                } else if (!playerOne.getCollectedCards().isEmpty()) {
-                    return playerOne;
-                }
-            }
-            playPile.push(playerOneRevaledCard);
-            playPile.push(playerTwoRevaledCard);
+        }
 
-            if(whoWonRound(playerOne,playerTwo,playerOneRevaledCard, playerTwoRevaledCard) == playerOne){
+        if(playerTwo.getHandCards().size()>=4){
+            for(int i = 0; i < 4; i++){
+                playPile.push(playerTwo.getHandCards().pop());
+            }
+        } else {
+            if(!populateHandCardsFromCollectedCards(playerTwo)){
+                //handle playerOne winning cards in the game loop
+
                 return playerOne;
-            }  else if (whoWonRound(playerOne,playerTwo,playerOneRevaledCard, playerTwoRevaledCard) == playerTwo) {
+            }
+        }
+
+        playerOnePlayingCard = playerOne.placeCardIntoPlayPile();
+        if(playerOnePlayingCard == null){
+            if(playerOne.getCollectedCards().size() > 0) {
+                playerOne.populateHandCard(playerOne.getCollectedCards().pop());
+            } else {
+
                 return playerTwo;
             }
 
-            System.out.println("war logic");
         }
+
+        playerTwoPlayingCard = playerTwo.placeCardIntoPlayPile();
+
+        if (playerTwoPlayingCard == null){
+            if(playerTwo.getCollectedCards().size() > 0){
+                playerTwo.populateHandCard(playerTwo.getCollectedCards().pop());
+            } else {
+
+                return playerOne;
+            }
+        }
+
+        return whoWonRound(playerOne, playerTwo, playerOnePlayingCard, playerTwoPlayingCard);
 
 
     }
 
     // DOUBLE CHECK THIS FOR EDGE CASES
     private static Player whoWonRound(Player playerOne, Player playerTwo, Card playerOneCard, Card playerTwoCard){
+        System.out.println(playerOneCard.getCardValue());
+        System.out.println(playerTwoCard.getCardValue());
 
-
-        if(isInteger(playerOneCard.getCardValue())&&isInteger(playerTwoCard.getCardValue())){
+        if (isInteger(playerOneCard.getCardValue()) && isInteger(playerTwoCard.getCardValue())) {
             int oneNum = Integer.parseInt(playerOneCard.getCardValue());
             int twoNum = Integer.parseInt(playerTwoCard.getCardValue());
-            if(oneNum>twoNum && twoNum!=1){
+            if(oneNum == 1 && twoNum != 1){
                 return playerOne;
             } else if (twoNum == 1 && oneNum != 1) {
                 return playerTwo;
-            } else if (twoNum>oneNum && oneNum!=1) {
-                return playerTwo;
-            } else if (oneNum ==1 && twoNum != 1) {
-                return playerOne;
-            } else{
-                return warLogic(playerOne, playerTwo);
+            } else {
+               return warLogic(playerOne,playerTwo);
             }
         } else if (isInteger(playerOneCard.getCardValue()) && !isInteger(playerTwoCard.getCardValue())) {
-            if(Integer.parseInt(playerOneCard.getCardValue()) == 1){
-                return playerOne;
-            } else {
-                return playerTwo;
-            }
-        } else if(!isInteger(playerOneCard.getCardValue()) && isInteger(playerTwoCard.getCardValue())){
-            if(Integer.parseInt(playerTwoCard.getCardValue())==1){
-                return playerTwo;
-            } else{
-                return playerOne;
-            }
-
+            return playerTwo;
+        } else if (isInteger(playerTwoCard.getCardValue()) && !isInteger(playerOneCard.getCardValue())) {
+            return playerOne;
         } else{
             if(getFaceRanks().get(playerOneCard.getCardValue()) > getFaceRanks().get(playerTwoCard.getCardValue())){
                 return playerOne;
-            } else if(getFaceRanks().get(playerTwoCard.getCardValue())> getFaceRanks().get(playerOneCard.getCardValue())){
+            } else if(getFaceRanks().get(playerTwoCard.getCardValue()) > getFaceRanks().get(playerOneCard.getCardValue())){
                 return playerTwo;
-            } else {
+            } else{
                 return warLogic(playerOne,playerTwo);
             }
-
         }
 
     }
@@ -177,8 +166,6 @@ public class GameLoop {
 
     // MUST FINISH THIS
     public void playGame(){
-        boolean gameDone = false;
-        boolean signalFromPopulate = true;
         GameLoop game = new GameLoop();
         Card[] gameCards = game.intializeAndShuffleDeck();
 
@@ -186,67 +173,85 @@ public class GameLoop {
         Player player_Two = new Player();
 
         game.doDeal(gameCards,player_One,player_Two);
-
-        while(!gameDone){
-
-
-
-            Card playerOneCard = player_One.placeCardIntoPlayPile();
-
-            //a check for null and adding more cards if necssary
-
-            playPile.push(playerOneCard);
-
-            Card playerTwoCard = player_Two.placeCardIntoPlayPile();
-
-            //a check for null and adding more cards if necessary
-
-            playPile.push(playerTwoCard);
-
-            Player winner = whoWonRound(player_One,player_Two, playerOneCard, playerTwoCard);
-
-
-            if(winner!=null){
-                redeemCards(winner);
-            }
-
-            //if either player runs out of hand cards we populate their hand. by four
-
-            if(player_One.getHandCards().size() == 0){
-                if(player_One.getCollectedCards().size() > 0){
+        int roundCount = 0;
+        while(true){
+            if(player_One.getHandCards().isEmpty()){
+                if (!player_One.getCollectedCards().isEmpty()){
                     player_One.shuffleCollectedCard();
-                    signalFromPopulate = populateHandCardsFromCollectedCards(player_One);
-                    if(!signalFromPopulate){
-                        gameDone = true;
-                        System.out.println("Player two won with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
-                        System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
-                    }
+                    player_One.populateHandCard(player_One.getCollectedCards().pop());
+                } else {
+                    //player two won and player one lost.
 
-                } else{
-                    gameDone = true;
-                    System.out.println("Player two won with " + player_Two.getCollectedCards().size()+ player_Two.getHandCards().size()+ " cards");
-                    System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
+                    //player two get player one hand cards and collected cards
+
+                    //playerTwo gets the play pile cards
+                    redeemCards(player_Two);
+
+                    System.out.println("On round " + roundCount + " Player Two won this game with a card count of " + player_Two.getCollectedCards().size()
+                            + player_Two.getHandCards().size() + " versus Player One who now has a card count of "  +
+                            player_One.getCollectedCards().size() + player_One.getHandCards().size() + " Thanks for playing.");
+                    break;
                 }
             }
-            if(player_Two.getHandCards().size() == 0){
-                if(player_Two.getCollectedCards().size() > 0){
+
+            if(player_Two.getHandCards().isEmpty()){
+                if(!player_Two.getCollectedCards().isEmpty()){
                     player_Two.shuffleCollectedCard();
-                    signalFromPopulate = populateHandCardsFromCollectedCards(player_Two);
-                    if(!signalFromPopulate){
-                        gameDone = true;
-                        System.out.println("Player two won with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
-                        System.out.println("Player one lost with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
-                    }
-                } else{
-                    gameDone = true;
-                    System.out.println("Player one won with " + player_One.getCollectedCards().size() + player_One.getHandCards().size()+ " cards");
-                    System.out.println("Player two lost with " + player_Two.getCollectedCards().size() + player_Two.getHandCards().size()+ " cards");
+                    player_Two.populateHandCard(player_Two.getCollectedCards().pop());
+                } else {
+                    //player one lost and player two one
+
+                    //player one gets player two cards.
+
+
+                    //playerOne gets the play pile cards
+                    redeemCards(player_One);
+
+                    System.out.println("On round " + roundCount + " Player One won this game with a card count of " + player_One.getCollectedCards().size()
+                            + player_One.getHandCards().size() + " versus Player Two who now has a card count of "  +
+                            player_Two.getCollectedCards().size() + player_Two.getHandCards().size() + " Thanks for playing.");
+                    break;
                 }
+            }
+
+            Card playerOneCardInGame = player_One.placeCardIntoPlayPile();
+            Card playerTwoCardInGame = player_Two.placeCardIntoPlayPile();
+
+            playPile.push(playerOneCardInGame);
+
+            playPile.push(playerTwoCardInGame);
+
+            Player winnerThisTime = whoWonRound(player_One,player_Two,playerOneCardInGame,playerTwoCardInGame);
+
+            if(winnerThisTime == player_One){
+                System.out.println("On round " + roundCount +" Player One won this round with " + playerOneCardInGame.getCardValue() + " of " +
+                        playerOneCardInGame.getSuit() + " while Player Two lost this round with " + playerTwoCardInGame.getCardValue() +
+                        " of " + playerTwoCardInGame.getSuit());
+                redeemCards(player_One);
+
+                System.out.println("For round " + roundCount);
+                System.out.println("Player One Count of hand cards: " + player_One.getHandCards().size());
+                System.out.println("Player One Count of collected cards: " + player_One.getCollectedCards().size());
+                System.out.println("Player Two Count of hand cards: " + player_Two.getHandCards().size());
+                System.out.println("Player Two Count of collected cards: " + player_Two.getCollectedCards().size());
+            }
+
+            if (winnerThisTime == player_Two){
+                System.out.println("On round " + roundCount + " Player Two won this round with " + playerTwoCardInGame.getCardValue() + " of " +
+                        playerTwoCardInGame.getSuit() + " while Player One lost this round with " + playerOneCardInGame.getCardValue() +
+                        " of " + playerOneCardInGame.getSuit());
+
+                redeemCards(player_Two);
+
+                System.out.println("For round " + roundCount);
+                System.out.println("Player One Count of hand cards: " + player_One.getHandCards().size());
+                System.out.println("Player One Count of collected cards: " + player_One.getCollectedCards().size());
+                System.out.println("Player Two Count of hand cards: " + player_Two.getHandCards().size());
+                System.out.println("Player Two Count of collected cards: " + player_Two.getCollectedCards().size());
 
             }
 
-            System.out.println("game loop in game method");
-
+            roundCount++;
         }
 
     }
