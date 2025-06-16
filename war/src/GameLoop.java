@@ -1,6 +1,6 @@
 import java.util.HashMap;
 import java.util.Stack;
-
+//pretty much done, the only question is why doesn't the final count equal 54, I'll fix it later.
 public class GameLoop {
 
     public static Stack<Card> playPile = new Stack<>();
@@ -56,7 +56,7 @@ public class GameLoop {
 
     private static Player warLogic(Player playerOne, Player playerTwo){
 
-       
+
         Card playerOnePlayingCard;
         Card playerTwoPlayingCard;
 
@@ -86,21 +86,25 @@ public class GameLoop {
         playerOnePlayingCard = playerOne.placeCardIntoPlayPile();
         if(playerOnePlayingCard == null){
             if(playerOne.getCollectedCards().size() > 0) {
+                System.out.println("One works");
                 playerOne.populateHandCard(playerOne.getCollectedCards().pop());
+                playerOnePlayingCard = playerOne.placeCardIntoPlayPile();
             } else {
-
                 return playerTwo;
             }
 
         }
 
+
+
         playerTwoPlayingCard = playerTwo.placeCardIntoPlayPile();
 
         if (playerTwoPlayingCard == null){
             if(playerTwo.getCollectedCards().size() > 0){
+                System.out.println("Two works");
                 playerTwo.populateHandCard(playerTwo.getCollectedCards().pop());
+                playerTwoPlayingCard = playerTwo.placeCardIntoPlayPile();
             } else {
-
                 return playerOne;
             }
         }
@@ -112,8 +116,7 @@ public class GameLoop {
 
     // DOUBLE CHECK THIS FOR EDGE CASES
     private static Player whoWonRound(Player playerOne, Player playerTwo, Card playerOneCard, Card playerTwoCard){
-        System.out.println(playerOneCard.getCardValue());
-        System.out.println(playerTwoCard.getCardValue());
+
 
         if (isInteger(playerOneCard.getCardValue()) && isInteger(playerTwoCard.getCardValue())) {
             int oneNum = Integer.parseInt(playerOneCard.getCardValue());
@@ -172,9 +175,11 @@ public class GameLoop {
         Player player_One = new Player();
         Player player_Two = new Player();
 
+
         game.doDeal(gameCards,player_One,player_Two);
         int roundCount = 0;
         while(true){
+            System.out.println("The beginning of round " + roundCount + " there are " + player_One.getHandCards().size()  + " for player 1 and " + player_Two.getHandCards().size() + " for player 2");
             if(player_One.getHandCards().isEmpty()){
                 if (!player_One.getCollectedCards().isEmpty()){
                     player_One.shuffleCollectedCard();
@@ -187,9 +192,11 @@ public class GameLoop {
                     //playerTwo gets the play pile cards
                     redeemCards(player_Two);
 
-                    System.out.println("On round " + roundCount + " Player Two won this game with a card count of " + player_Two.getCollectedCards().size()
-                            + player_Two.getHandCards().size() + " versus Player One who now has a card count of "  +
-                            player_One.getCollectedCards().size() + player_One.getHandCards().size() + " Thanks for playing.");
+                    int countForOne = player_One.getCollectedCards().size()+player_One.getHandCards().size();
+                    int countForTwo = player_Two.getCollectedCards().size()+player_Two.getHandCards().size();
+
+                    System.out.println("On round " + roundCount + " Player Two won this game with a card count of " +countForTwo + " versus Player One who now has a card count of "  +
+                            countForOne + " Thanks for playing.");
                     break;
                 }
             }
@@ -203,13 +210,12 @@ public class GameLoop {
 
                     //player one gets player two cards.
 
-
                     //playerOne gets the play pile cards
                     redeemCards(player_One);
-
-                    System.out.println("On round " + roundCount + " Player One won this game with a card count of " + player_One.getCollectedCards().size()
-                            + player_One.getHandCards().size() + " versus Player Two who now has a card count of "  +
-                            player_Two.getCollectedCards().size() + player_Two.getHandCards().size() + " Thanks for playing.");
+                    int countForOne = player_One.getCollectedCards().size()+player_One.getHandCards().size();
+                    int countForTwo = player_Two.getCollectedCards().size()+player_Two.getHandCards().size();
+                    System.out.println("On round " + roundCount + " Player One won this game with a card count of " + countForOne + " versus Player Two who now has a card count of "  +
+                            countForTwo + " Thanks for playing.");
                     break;
                 }
             }
@@ -260,6 +266,9 @@ public class GameLoop {
         GameLoop newGame = new GameLoop();
 
         newGame.playGame();
+
+
+
 
     }
 
