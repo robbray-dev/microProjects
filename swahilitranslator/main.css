@@ -13,3 +13,21 @@ body {
      position: fixed;
      top: 0;
 }
+
+#Header-section h1{
+    color: white;
+}
+
+#English-section{
+  background-color: black;
+  width: 50vw;
+  height: 75vh;
+  position: relative;
+  top: 180px;
+  
+}
+
+#English-section h1{
+  font-size: 20;
+  color: white;
+}
