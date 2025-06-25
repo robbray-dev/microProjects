@@ -58,3 +58,15 @@ body {
   color: white;
 }
 
+#Kenya-section div{
+  border-width: 2px;
+  border-style: solid;
+  border-color: white;
+  position: absolute;
+  top: 45%;
+  left: 25%;
+
+  margin:auto;
+  width: 50%;
+
+}
