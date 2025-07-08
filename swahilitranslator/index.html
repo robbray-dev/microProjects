@@ -33,5 +33,22 @@
         </div>
     </section>
     
+    <script>
+  async function translate() {
+    const input = document.getElementById("english-word").value;
+
+    const response = await fetch("http://localhost:8080/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: input })
+    });
+
+    const data = await response.json();
+    document.getElementById("word-box").innerHTML = `<p>${data.translated}</p>`;
+  }
+
+  document.querySelector("button").addEventListener("click", translate);
+</script>
+
 </body>
 </html>
